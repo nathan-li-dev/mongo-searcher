@@ -1,0 +1,150 @@
+.icon-btn {
+  min-width: 34px;
+  min-height: 34px;
+}
+
+.Mythic {
+  color: #cf4747;
+}
+.Legendary {
+  color: #ffb400;
+}
+.Epic {
+  color: #9132c8;
+}
+.Rare {
+  color: #2f78ff;
+}
+.Uncommon {
+  color: #3dd20b;
+}
+.Common {
+  color: white;
+}
+
+.Mythic-glow {
+  box-shadow: 0 0 12px 1px #cf4747;
+}
+.Legendary-glow {
+  box-shadow: 0 0 12px 1px #ffb400;
+}
+.Epic-glow {
+  box-shadow: 0 0 12px 1px #9132c8;
+}
+.Rare-glow {
+  box-shadow: 0 0 12px 1px #2f78ff;
+}
+.Uncommon-glow {
+  box-shadow: 0 0 12px 1px #3dd20b;
+}
+.Common-glow {
+  box-shadow: 0 0 12px 1px silver;
+}
+
+.Mythic-bg {
+  background-color: #cf4747;
+}
+.Legendary-bg {
+  background-color: #ffb400;
+}
+.Epic-bg {
+  background-color: #9132c8;
+}
+.Rare-bg {
+  background-color: #2f78ff;
+}
+.Uncommon-bg {
+  background-color: #3dd20b;
+}
+.Common-bg {
+  background-color: silver;
+  color: black;
+}
+
+.NoElement-bg {
+  background-color: silver;
+  color: black;
+}
+.Normal-bg {
+  background-color: silver;
+  color: black;
+}
+.Fight-bg {
+  background-color: #f5efe6;
+  color: black;
+}
+.Wind-bg {
+  background-color: #bce29e;
+  color: black;
+}
+.Poison-bg {
+  background-color: #874c62;
+}
+.Earth-bg {
+  background-color: #dfa67b;
+}
+.Bug-bg {
+  background-color: #94af9f;
+}
+.Metal-bg {
+  background-color: #aebdca;
+}
+.Blood-bg {
+  background-color: #fd8a8a;
+}
+.Tech-bg {
+  background-color: #b9f3e4;
+  color: black;
+}
+.Grass-bg {
+  background-color: #bbd6b8;
+  color: black;
+}
+.Fire-bg {
+  background-color: #e97777;
+}
+.Water-bg {
+  background-color: #bccef8;
+}
+.Electric-bg {
+  background-color: #ffd966;
+  color: black;
+}
+.Psychic-bg {
+  background-color: #ffcefe;
+}
+.Ice-bg {
+  background-color: #b9f3fc;
+  color: black;
+}
+.Music-bg {
+  background-color: #93bfcf;
+}
+.Dark-bg {
+  background-color: #554994;
+}
+.Light-bg {
+  background-color: #fefcf3;
+  color: black;
+}
+
+.physical-bg {
+  background-color: white;
+  color: black;
+}
+.magical-bg {
+  background-color: purple;
+  color: white;
+}
+
+#scrollUp {
+  background-color: black !important;
+  position: fixed;
+  right: 1rem;
+  z-index: 9;
+  top: 95vh;
+  transform: translateY(-50%);
+  border-radius: 16px;
+  padding: 1rem !important;
+  opacity: 0.7;
+}
