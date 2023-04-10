@@ -250,6 +250,7 @@ function getTraitButton(trait, element) {
       break;
     case "Intelligent":
       if (dmgType === "magical") dmgClass = "btn-success";
+      if (dmgType === "physical") dmgClass = "btn-danger";
       icon = "fa-solid fa-wand-magic-sparkles";
       title = "<b>Intelligence: </b> +Magic DMG";
       break;
@@ -263,6 +264,7 @@ function getTraitButton(trait, element) {
       break;
     case "Strong":
       if (dmgType === "physical") dmgClass = "btn-success";
+      if (dmgType === "magical") dmgClass = "btn-danger";
       icon = "fa-solid fa-hand-fist";
       title = "<b>Strength: </b> +Phys. DMG";
       break;
@@ -283,6 +285,7 @@ function getNatureButton(nature, element) {
     case "Naughty":
     case "Brave":
       if (dmgType === "physical") dmgClass = "btn-success";
+      if (dmgType === "magical") dmgClass = "btn-danger";
       icon = "fa-solid fa-hand-fist";
       break;
     case "Bold":
@@ -296,6 +299,7 @@ function getNatureButton(nature, element) {
     case "Rash":
     case "Quiet":
       if (dmgType === "magical") dmgClass = "btn-success";
+      if (dmgType === "physical") dmgClass = "btn-danger";
       icon = "fa-solid fa-wand-magic-sparkles";
       break;
     case "Calm":
