@@ -16,93 +16,67 @@ let currentCharacterSort = 0;
 
 let tooltipList = [];
 
-// Function to lightly sanitize inputs on multi selects
-function cleanSelect(id) {
-  const input = document.getElementById(id);
-  const selected = input.selectedOptions;
-  const values = Array.from(selected).map(({ value }) => value);
-  if (values.length === 0) {
-    input.selectedIndex = 0;
+// Get results from a search. If isNewSearch is false, then it's a LOAD MORE RESULTS operation.
+function getResults(isNewSearch) {
+  numCardsToSkip = isNewSearch ? 0 : (numCardsToSkip += cardLimit);
+
+  // Only set the current values for a new search, so params dont change when you try to load more
+  if (isNewSearch) {
+    currentCharacter = $("#characterInput").val();
+    currentArtist = $("#artistInput").val();
+    currentSponsor = $("#sponsorInput").val();
+    currentRarities = $("#rarityInput").val();
+    currentElements = $("#elementInput").val();
+    currentTraits = $("#traitInput").val();
+    currentNatures = $("#natureInput").val();
+    currentDateSort = $("#dateSortInput").val();
+    currentCharacterSort = $("#characterSortInput").val();
   }
-  if (values.length > 1) {
-    input.options[0].selected = false;
-  }
-  return values;
-}
 
-function getSelectsFrom(id) {
-  const input = document.getElementById(id);
-  const selected = input.selectedOptions;
-  const values = Array.from(selected).map(({ value }) => value);
-  return values;
-}
-
-// Get results from a NEW search
-function getResults() {
-  numCardsToSkip = 0;
-
-  // Get input values
-  currentCharacter = document.getElementById("characterInput").value;
-  currentArtist = document.getElementById("artistInput").value;
-  currentSponsor = document.getElementById("sponsorInput").value;
-  currentRarities = getSelectsFrom("rarityInput");
-  currentElements = getSelectsFrom("elementInput");
-  currentTraits = getSelectsFrom("traitInput");
-  currentNatures = getSelectsFrom("natureInput");
-  currentDateSort = document.getElementById("dateSortInput").value;
-  currentCharacterSort = document.getElementById("characterSortInput").value;
-
-  let xhr = new XMLHttpRequest();
-  // Define how to update the results area when the response is obtained
-  xhr.onreadystatechange = () => {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      // Hide old tooltips
-      tooltipList.forEach((tooltip) => {
-        tooltip.dispose();
-      });
-      addCardsFromResponse(xhr.responseText, true);
-    }
+  const data = {
+    character: currentCharacter,
+    artist: currentArtist,
+    sponsor: currentSponsor,
+    rarities: currentRarities,
+    elements: currentElements,
+    traits: currentTraits,
+    natures: currentNatures,
+    dateSort: currentDateSort,
+    characterSort: currentCharacterSort,
+    skip: numCardsToSkip,
+    amount: cardLimit,
   };
 
   // Send a POST to /search with the search data as JSON data
-  xhr.open("POST", `/search`, true);
-  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-  xhr.send(
-    JSON.stringify({
-      character: currentCharacter,
-      artist: currentArtist,
-      sponsor: currentSponsor,
-      rarities: currentRarities,
-      elements: currentElements,
-      traits: currentTraits,
-      natures: currentNatures,
-      dateSort: currentDateSort,
-      characterSort: currentCharacterSort,
-      skip: 0,
-      amount: cardLimit,
-    })
-  );
+  $.post({
+    url: "/search",
+    data: JSON.stringify(data),
+    contentType: "application/json",
+    success: (results) => {
+      addCardsFromResponse(results, isNewSearch);
+    },
+  });
 }
 
+// Build up the html for the search results and place them into the appropriate location
 function addCardsFromResponse(responseText, isNewSearch) {
   let response = JSON.parse(responseText);
-
   const imageBaseUrl = response.imageBaseUrl;
+  const amountFound = response.amountFound.toLocaleString();
+  const amountShowing = response.amountShowing.toLocaleString();
+  const moreCanBeLoaded = response.isThereMore;
+
+  disableAllTooltips();
 
   // If there are still cards left, enable the load more button, otherwise disable it
-  const moreButton = document.getElementById("moreButton");
-  if (response.isThereMore) {
-    moreButton.disabled = false;
-  } else {
-    moreButton.disabled = true;
-  }
-  moreButton.innerHTML = `Load More (Showing ${response.amountShowing.toLocaleString()}/${response.amountFound.toLocaleString()})`;
+  //const moreButton = document.getElementById("moreButton");
+  $("#moreButton").prop("disabled", !moreCanBeLoaded);
+  $("#moreButton").html(`Load More (Showing ${amountShowing}/${amountFound})`);
 
   // Add the new cards to the display
   let html = "";
 
-  const ids = [];
-  response.results.forEach((card, index) => {
+  response.results.forEach((card) => {
     const element = card.Element;
     const nature = card.Nature;
     const rarity = card.Rarity;
@@ -114,8 +88,6 @@ function addCardsFromResponse(responseText, isNewSearch) {
     const source = card.sourceURL;
     const sponsor = card.sponsor;
     const id = card._id;
-    ids.push({ id, characterTag });
-
     const elementFix = element === "???" ? "No Element" : element;
 
     const cardDiv = `
@@ -160,78 +132,53 @@ function addCardsFromResponse(responseText, isNewSearch) {
   });
 
   // Add all the cards
-  let resultsDiv = document.getElementById("searchResults");
   if (isNewSearch) {
-    resultsDiv.innerHTML = html;
-    document.getElementById(
-      "resultsCount"
-    ).innerHTML = `${response.amountFound.toLocaleString()} Results found.`;
+    $("#searchResults").html(html);
+    $("#resultsCount").text(`${amountFound} results found.`);
   } else {
-    resultsDiv.innerHTML += html;
+    $("#searchResults").append(html);
   }
 
-  // Enable all the new tooltips
+  enableAllTooltips();
+}
+
+function copyTag(characterInput) {
+  navigator.clipboard.writeText(characterInput);
+}
+
+// Function to lightly sanitize inputs on multi selects
+function cleanSelect(id) {
+  const input = document.getElementById(id);
+  const selected = input.selectedOptions;
+  const values = Array.from(selected).map(({ value }) => value);
+  if (values.length === 0) {
+    input.selectedIndex = 0;
+  }
+  if (values.length > 1) {
+    input.options[0].selected = false;
+  }
+  return values;
+}
+
+function enableAllTooltips() {
+  // Find all the tooltips
   const tooltipTriggerList = [].slice.call(
     document.querySelectorAll('[data-toggle="tooltip"]')
   );
 
+  // Save them in a list so they can be disabled later
   tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl, {
       html: true,
       trigger: "hover",
     });
   });
-
-  // Add tag button onclick functions
-  //ids.forEach((pair) => {
-  //  document
-  //    .getElementById("charTagButton" + String(pair.id))
-  //    .addEventListener("click", () => copyTag(pair.characterTag));
-  //});
 }
 
-function getSponsorTooltip(sponsor) {
-  const title = sponsor
-    ? `Sponsored by</br><b>${sponsor}</b>`
-    : "No sponsor information";
-  const tooltipData = `data-toggle="tooltip" data-html="true" title="${title}"`;
-  return tooltipData;
-}
-
-function loadMore() {
-  numCardsToSkip += cardLimit;
-
-  let xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = () => {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      // Hide old tooltips
-      tooltipList.forEach((tooltip) => {
-        tooltip.dispose();
-      });
-      addCardsFromResponse(xhr.responseText, false);
-    }
-  };
-  xhr.open("POST", `/search`, true);
-  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-  xhr.send(
-    JSON.stringify({
-      character: currentCharacter,
-      artist: currentArtist,
-      sponsor: currentSponsor,
-      rarities: currentRarities,
-      elements: currentElements,
-      traits: currentTraits,
-      natures: currentNatures,
-      dateSort: currentDateSort,
-      characterSort: currentCharacterSort,
-      skip: numCardsToSkip,
-      amount: cardLimit,
-    })
-  );
-}
-
-function copyTag(characterInput) {
-  navigator.clipboard.writeText(characterInput);
+function disableAllTooltips() {
+  tooltipList.forEach((tooltip) => {
+    tooltip.dispose();
+  });
 }
 
 function damageType(element) {
@@ -282,6 +229,7 @@ function getDamageTypeBadge(element) {
   }
   return `<span class="badge mb-1 ${classes}"><i class="${icon} me-1"></i>${text}</span>`;
 }
+
 function getTraitButton(trait, element) {
   let dmgClass = "btn-secondary";
   let icon = "";
@@ -322,6 +270,60 @@ function getTraitButton(trait, element) {
   return `<a class="d-inline-block btn btn-sm btn-secondary icon-btn text-center ${dmgClass}" data-toggle="tooltip" data-html="true" data-bs-placement="right" title="${title}">
             <i class="${icon}"></i>
           </a>`;
+}
+
+function getNatureButton(nature, element) {
+  let dmgClass = "btn-secondary";
+  const dmgType = damageType(element);
+  let icon = "";
+
+  switch (nature) {
+    case "Lonely":
+    case "Adamant":
+    case "Naughty":
+    case "Brave":
+      if (dmgType === "physical") dmgClass = "btn-success";
+      icon = "fa-solid fa-hand-fist";
+      break;
+    case "Bold":
+    case "Impish":
+    case "Lax":
+    case "Relaxed":
+      icon = "fa-solid fa-shield-halved";
+      break;
+    case "Modest":
+    case "Mild":
+    case "Rash":
+    case "Quiet":
+      if (dmgType === "magical") dmgClass = "btn-success";
+      icon = "fa-solid fa-wand-magic-sparkles";
+      break;
+    case "Calm":
+    case "Gentle":
+    case "Careful":
+    case "Sassy":
+      icon = "fa-solid fa-shield-virus";
+      break;
+    case "Timid":
+    case "Hasty":
+    case "Jolly":
+    case "Naive":
+      icon = "fa-solid fa-forward";
+      break;
+    case "Hardy":
+    case "Docile":
+    case "Bashful":
+    case "Quirky":
+    case "Serious":
+      icon = "fa-regular fa-circle-xmark";
+      break;
+  }
+  return `
+  <a class="d-inline-block btn btn-sm ${dmgClass} icon-btn text-center" ${getNatureTooltip(
+    nature
+  )}>
+    <i class="${icon}"></i>
+  </a>`;
 }
 
 function getNatureTooltip(nature) {
@@ -398,105 +400,12 @@ function getNatureTooltip(nature) {
   return `data-toggle="tooltip" data-html="true" data-bs-placement="right" title="${title}"`;
 }
 
-function getNatureButton(nature, element) {
-  let dmgClass = "btn-secondary";
-  const dmgType = damageType(element);
-  let icon = "";
-
-  switch (nature) {
-    case "Lonely":
-    case "Adamant":
-    case "Naughty":
-    case "Brave":
-      if (dmgType === "physical") dmgClass = "btn-success";
-      icon = "fa-solid fa-hand-fist";
-      break;
-    case "Bold":
-    case "Impish":
-    case "Lax":
-    case "Relaxed":
-      icon = "fa-solid fa-shield-halved";
-      break;
-    case "Modest":
-    case "Mild":
-    case "Rash":
-    case "Quiet":
-      if (dmgType === "magical") dmgClass = "btn-success";
-      icon = "fa-solid fa-wand-magic-sparkles";
-      break;
-    case "Calm":
-    case "Gentle":
-    case "Careful":
-    case "Sassy":
-      icon = "fa-solid fa-shield-virus";
-      break;
-    case "Timid":
-    case "Hasty":
-    case "Jolly":
-    case "Naive":
-      icon = "fa-solid fa-forward";
-      break;
-    case "Hardy":
-    case "Docile":
-    case "Bashful":
-    case "Quirky":
-    case "Serious":
-      icon = "fa-regular fa-circle-xmark";
-      break;
-  }
-  return `
-  <a class="d-inline-block btn btn-sm ${dmgClass} icon-btn text-center" ${getNatureTooltip(
-    nature
-  )}>
-    <i class="${icon}"></i>
-  </a>`;
-}
-
-function getTooltip(stat) {
-  let baseToolTip = `data-toggle="tooltip" data-html="true" title="`;
-  switch (stat) {
-    case "Blood":
-      break;
-    case "Bug":
-      break;
-    case "Dark":
-      break;
-    case "Earth":
-      break;
-    case "Electric":
-      break;
-    case "Fight":
-      break;
-    case "Fire":
-      break;
-    case "Grass":
-      break;
-    case "Ice":
-      break;
-    case "Light":
-      break;
-    case "Metal":
-      break;
-    case "Music":
-      break;
-    case "Normal":
-      break;
-    case "Poison":
-      break;
-    case "Psychic":
-      break;
-    case "Tech":
-      break;
-    case "Water":
-      break;
-    case "Wind":
-      break;
-    case "Blood":
-      break;
-    case "Blood":
-      break;
-  }
-  baseToolTip += `"`;
+function getSponsorTooltip(sponsor) {
+  const title = sponsor
+    ? `Sponsored by</br><b>${sponsor}</b>`
+    : "No sponsor information";
+  const tooltipData = `data-toggle="tooltip" data-html="true" title="${title}"`;
+  return tooltipData;
 }
 
 function clearTextFrom(textInput) {
@@ -521,10 +430,12 @@ document
 document
   .getElementById("rarityInput")
   .addEventListener("click", () => cleanSelect("rarityInput"));
-document.getElementById("submit").addEventListener("click", getResults);
+document
+  .getElementById("submit")
+  .addEventListener("click", () => getResults(true));
 document
   .getElementById("moreButton")
-  .addEventListener("click", () => loadMore());
+  .addEventListener("click", () => getResults(false));
 document
   .getElementById("clearSponsorButton")
   .addEventListener("click", () => clearTextFrom("sponsorInput"));
