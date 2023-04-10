@@ -109,11 +109,6 @@ async function getData(
     .limit(amount);
 
   const values = await result.toArray();
-  /*
-  values.forEach((result) => {
-    console.dir(result);
-  });
-  */
 
   const isThereMore = amountFound > amount + skip;
   const amountShowing = isThereMore ? amount + skip : amountFound;

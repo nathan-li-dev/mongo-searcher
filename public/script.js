@@ -534,9 +534,3 @@ document
 document
   .getElementById("clearCharacterButton")
   .addEventListener("click", () => clearTextFrom("characterInput"));
-//document
-//  .getElementById("characterInput")
-//  .addEventListener("keyup", () => forceLower("characterInput"));
-//document
-//  .getElementById("artistInput")
-//  .addEventListener("keyup", () => forceLower("artistInput"));
