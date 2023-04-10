@@ -4,6 +4,8 @@ Web interface for searching and filtering data from a remote mongodb server
 
 ## Config
 
+Prepare a .env file in the project root directory with the following values:
+
 ```
 CONNECTION_STRING="Your mongodb connection string"
 DB_NAME="Your db name"
