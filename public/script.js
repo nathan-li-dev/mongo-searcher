@@ -49,7 +49,7 @@ function getResults(isNewSearch) {
 
   // Edit page in meantime - disable all tooltips while waiting for response, and change submit button to have loading text
   disableAllTooltips();
-  toggleSearchButton(false);
+  toggleSearchButton(false, isNewSearch);
 
   // Send a POST to /search with the search data as JSON data
   $.post({
@@ -57,15 +57,18 @@ function getResults(isNewSearch) {
     data: JSON.stringify(data),
     contentType: "application/json",
     success: (results) => {
-      toggleSearchButton(true);
+      toggleSearchButton(true, isNewSearch);
       addCardsFromResponse(results, isNewSearch);
     },
   });
 }
 
 // Set the search buttons to have a spinner while waiting for a response from the DB
-function toggleSearchButton(isEnabled) {
-  const searchButtons = $("#submit,#moreButton");
+function toggleSearchButton(isEnabled, isNewSearch) {
+  //const id = isNewSearch ? "#submit" : "#moreButton";
+  //console.log(id);
+  console.log(isNewSearch);
+  const searchButtons = isNewSearch ? $("#submit") : $("#moreButton");
   if (isEnabled) {
     searchButtons.prop("disabled", false);
     searchButtons.html(`
