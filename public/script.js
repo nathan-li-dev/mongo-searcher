@@ -276,12 +276,13 @@ function getTraitButton(trait, element) {
 
 function getNatureButton(nature, element) {
   let dmgClass = "btn-secondary";
+  let bestNatureClass = "";
   const dmgType = damageType(element);
   let icon = "";
 
   switch (nature) {
-    case "Lonely":
     case "Adamant":
+    case "Lonely":
     case "Naughty":
     case "Brave":
       if (dmgType === "physical") dmgClass = "btn-success";
@@ -323,7 +324,7 @@ function getNatureButton(nature, element) {
       break;
   }
   return `
-  <a class="d-inline-block btn btn-sm ${dmgClass} icon-btn text-center" ${getNatureTooltip(
+  <a class="d-inline-block btn btn-sm ${dmgClass} ${bestNatureClass} icon-btn text-center" ${getNatureTooltip(
     nature
   )}>
     <i class="${icon}"></i>

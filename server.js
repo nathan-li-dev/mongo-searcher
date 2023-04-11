@@ -97,7 +97,8 @@ async function getData(
 
   // Build the query object that will be passed to the collection's find() method
   const query = { name: { $ne: "[DELETED]" } };
-  if (character) query.characterTag = character;
+  if (character)
+    query.characterTag = { $regex: `^(?i)${escapeRegExp(character)}` };
   if (artist) query.artistTag = artist;
   if (sponsor) query.sponsor = sponsor;
   if (rarities && !rarities.includes("Any")) query.Rarity = { $in: rarities };
@@ -137,6 +138,10 @@ async function getData(
     amountFound,
     imageBaseUrl: process.env.CHAR_IMG_BASE_URL,
   };
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 app.listen(port);
