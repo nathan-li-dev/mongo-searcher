@@ -47,15 +47,36 @@ function getResults(isNewSearch) {
     amount: cardLimit,
   };
 
+  // Edit page in meantime - disable all tooltips while waiting for response, and change submit button to have loading text
+  disableAllTooltips();
+  toggleSearchButton(false);
+
   // Send a POST to /search with the search data as JSON data
   $.post({
     url: "/search",
     data: JSON.stringify(data),
     contentType: "application/json",
     success: (results) => {
+      toggleSearchButton(true);
       addCardsFromResponse(results, isNewSearch);
     },
   });
+}
+
+// Set the search buttons to have a spinner while waiting for a response from the DB
+function toggleSearchButton(isEnabled) {
+  const searchButtons = $("#submit,#moreButton");
+  if (isEnabled) {
+    searchButtons.prop("disabled", false);
+    searchButtons.html(`
+    <i class="bi bi-search"></i>
+    Submit`);
+  } else {
+    searchButtons.prop("disabled", true);
+    searchButtons.html(`
+    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    Loading...`);
+  }
 }
 
 // Build up the html for the search results and place them into the appropriate location
@@ -65,8 +86,6 @@ function addCardsFromResponse(responseText, isNewSearch) {
   const amountFound = response.amountFound.toLocaleString();
   const amountShowing = response.amountShowing.toLocaleString();
   const moreCanBeLoaded = response.isThereMore;
-
-  disableAllTooltips();
 
   // If there are still cards left, enable the load more button, otherwise disable it
   //const moreButton = document.getElementById("moreButton");
@@ -135,6 +154,7 @@ function addCardsFromResponse(responseText, isNewSearch) {
   if (isNewSearch) {
     $("#searchResults").html(html);
     $("#resultsCount").text(`${amountFound} results found.`);
+    $("#moreButton").prop("hidden", false);
   } else {
     $("#searchResults").append(html);
   }
